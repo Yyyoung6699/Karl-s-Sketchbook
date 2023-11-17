@@ -1,4 +1,4 @@
-# Weekly work
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2afb1e41-10d9-4d29-bcf0-8f6906fa363d)# Weekly work
 ## Week 1 Project proposal
 ### Inspiration
 Inspired by a new puzzle game called Viewfinder, it transforms 2D photos into part of a 3D game scene through the in-game camera, a clever perspective-based puzzle mechanic. I found this mechanic very interesting, so I decided to try to make a 3D puzzle game using this mechanic. Puzzle games are usually accompanied by a story narrative, after referring to some puzzle narrative games, I decided to try a fragmented narrative to tell a story. Image recognition technology has been used with success in previous projects, so I was curious about what the effect of introducing new image recognition technology into a puzzle game would be. As a result, a 3D puzzle narrative game incorporating image recognition technology was born.
@@ -221,6 +221,375 @@ public void ChangeContent(int y, int n)//修改书的画
         }
     }
 ```
+#### ray detection door
+```C#
+void ShootRay(Ray ray, out RaycastHit hit)
+    {
+        hit = new RaycastHit(); // 初始化 hit 变量
+
+        if (Physics.Raycast(ray, out hit, MaxDistance))
+        {
+            BookController bookController = GameObject.Find("Book_Necromancer").GetComponent<BookController>();
+            textrue = bookController.CurrentTextrue;
+
+            if (hit.collider.gameObject.name == "Door" || hit.collider.gameObject.name == "RainbowTrigger" || hit.collider.gameObject.name == "Huaban" || hit.collider.gameObject.name == "TiaoSePan" || hit.collider.gameObject.name == "InteractionFrame" || hit.collider.gameObject.name == "InteractionFrame2")
+            {
+                ui.Show_UI_Point();
+            }
+            else
+            {
+                ui.Hide_UI_Point();
+            }
+            if (Input.GetMouseButtonDown(0) && bookController.CanChange == true)
+            {
+                if (hit.collider.gameObject.name == "Door" && textrue == 1)
+                {
+                    bookController.UsePaperNoContent();
+                    StartDoor = true;
+                }
+            }
+        }
+    }
+```
+#### Generate door handles (including rain after opening the door)
+```C#
+void Update()
+    {
+        if (interaction.StartDoor == true && CanOpen == true)
+        {
+            grayKnob.SetActive(true);
+            if (interaction.HitInteractionDoor == true)
+            {
+                if (Input.GetKey(KeyCode.F))
+                {
+                    playAnimation();//开门动画
+                    Raining = true;//bool开始下雨且阴天
+                }
+            }
+        }
+        if (Raining == true)
+        {
+            ChangeVolume();
+        }
+    }
+
+
+    public void playAnimation()
+    {
+        gameObject.GetComponent<Animator>().SetTrigger("Open");
+        CanOpen = false;
+    }
+
+    public void ChangeVolume()
+    {
+        var visualEffect = Rain.GetComponent<VisualEffect>();
+        visualEffect.Play();//停止下雨
+
+        Volume volume = globalVolume.GetComponent<Volume>();
+        ColorAdjustments colorAdjustments;
+        if (volume.profile.TryGet(out colorAdjustments))
+        {
+            float transitionSpeed = 0.5f;  // 过渡速度，根据需要调整
+
+            float targetR = 167f / 255f;
+            float targetG = 167f / 255f;
+            float targetB = 200f / 255f;
+
+            float newR = Mathf.Lerp(colorAdjustments.colorFilter.value.r, targetR, Time.deltaTime * transitionSpeed);
+            float newG = Mathf.Lerp(colorAdjustments.colorFilter.value.g, targetG, Time.deltaTime * transitionSpeed);
+            float newB = Mathf.Lerp(colorAdjustments.colorFilter.value.b, targetB, Time.deltaTime * transitionSpeed);
+
+            colorAdjustments.colorFilter.value = new Color(newR, newG, newB, 1);
+        }
+    }
+```
+
+## Week 5 Subsequent level updates 2-4
+### Level 2
+In the second level Karl faces the cliff in the heavy rain and thinks of a scene he once had in a dream, walking on a rainbow, and when he wakes up Karl paints this piece of artwork. Choose this painting to interact with the cliff, and walk on the rainbow when it appears. The implementation method is similar to the first level, here only show the rainbow transition code.
+```C#
+public void RainbowAlpha()
+    {
+        StartCoroutine(DelayRainbowAlpha());
+    }
+    IEnumerator DelayRainbowAlpha()
+    {
+        yield return new WaitForSeconds(2.0f);
+        //GameObject Rainbow = GameObject.Find("Rainbow");
+        if (rainbow != null )
+        {
+            Renderer renderer = rainbow.GetComponent<Renderer>();
+            Material material = renderer.material;
+
+            // 在每一帧更新透明度
+            alpha = Mathf.Lerp(alpha, 1.0f, Time.deltaTime * 0.5f); // 这将使透明度从0逐渐过渡到1
+            if (renderer.material.HasProperty("_TransparentSrength"))
+            {
+                renderer.material.SetFloat("_TransparentSrength", alpha); // 设置Alpha属性值为0.5
+            }
+            ziFaGuang = Mathf.Lerp(alpha, 0.5f, Time.deltaTime * 0.5f);
+            if (renderer.material.HasProperty("_EmissiveStrength"))
+            {
+                renderer.material.SetFloat("_EmissiveStrength", ziFaGuang); // 设置Alpha属性值为0.5
+            }
+        }
+    }
+```
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7762b390-2e11-4cb2-8fdb-f73b9452a2db)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/d6015f93-deee-4bcc-9370-972872f8e736)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2e885d8a-21d2-4abe-8503-dca474cda107)
+
+### Level 3
+Starting with the third level I'd like to do something innovative with the decryption mechanism. I avoid the boredom caused by a single gameplay style, the puzzle ideas need to be more varied, so as to constantly bring new surprises to the players.
+
+The third level takes place in the location where Karl sketched during his youth, and the player is blocked by a collapsed stone door with a wooden easel standing next to it. By observing the environment of the scene, it is not difficult to find that the content of the Forest Trail painting is similar to the surrounding environment. After interacting with the easel, the painting appears on the easel, but the stone gate still blocks the way forward. According to the plot hints, the player needs to find the right angle so that the line of sight, the painting panel and the stone door are in a straight line. Through a clever visual illusion, the scenery of Forest Trail on the painting board obscures the collapsed part of the stone gate, and visually the scenery in the painting blends in with the jungle behind the stone gate, as if this stone gate has never collapsed. In this moment, all this becomes reality, the scenery in Forest Trail replaces the collapsed part of the gate, and the player can pass through it directly.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/58edff8b-7dc1-41a1-94e2-302800291ea0)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2af3c933-11d9-40f6-96a5-3d44b8908fd1)
+
+#### trigger a plot
+```C#
+public void Tutorial5()
+    {
+        timer5 += Time.deltaTime;
+
+        if (currentIndex5 < subtitles5.Length)
+        {
+            if (timer5 >= displayDuration)
+            {
+                backGround.SetActive(true);
+                subtitleText5.text = subtitles5[currentIndex5];
+                currentIndex5++;
+                timer5 = 0.0f;
+            }
+        }
+        if (currentIndex5 == subtitles5.Length)
+        {
+            backGround.SetActive(false);
+            currentIndex5 = currentIndex5 + 1;
+        }
+}
+```
+#### Position detection
+```C#
+public void DetectPosition()
+    {
+        Transform playertransform = player.transform;
+        float px = playertransform.position.x;
+        float pz = playertransform.position.z;
+        if ((px >= 2.45f && px <= 3.6f) && (pz >= -34f && pz <= -31.5f))
+        {
+            if(interaction.HitDetectObj == true)
+            {
+                paint.SetActive(false);
+                frame.SetActive(false);
+                gameObject.SetActive(false);
+                rockWall.SetActive(false);
+            }
+        }
+}
+```
+
+Also some modifications to the model of the easel to make it smoother in moments of optical illusions.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7ea97320-9e93-43a5-8670-01f8a0c59d23)
+
+### Level 4
+In the fourth level, the player is blocked by a red river, and next to the river is a palette containing red paint.  It is easy to see that the puzzles in this level are colour related, and the palette echoes Karl's identity as a painter, which is seen as the key to solving the puzzles.  The painting used for solving the puzzle is called Katherine, the girl in the painting is beautiful, the whole painting is in blue colour, and "She's as clear as a river." in the Note suggests the river in front of you.  Interacting with the palette, the paint in the palette turns blue, and the river turns clear blue. 
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/842785c6-ef68-4fd5-8dd1-328009c2b426)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2678dc00-4e87-448b-99c2-59e5bc7aeb96)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7cc4bf58-842d-40b0-955d-d60e67f2f548)
+
+#### Modify the colour of the river
+```C#
+public void ChangeWater(int bookTextrue)
+    {
+        float newRT = 0;
+        float newGT = 0;
+        float newBT = 0;
+        float newTransT = 0;
+        switch (bookTextrue)
+        {
+            case 1:
+                newRT = 0.333f;
+                newGT = 0.333f;
+                newBT = 0.333f;
+                newTransT = 0.2f;
+                break;
+            case 2:
+                newRT = 0f;
+                newGT = 0f;
+                newBT = 0f;
+                newTransT = 0.2f;
+                break;
+        }
+        Renderer renderer = water.GetComponent<Renderer>();
+        Material material = renderer.material;
+        float newR = Mathf.Lerp(material.GetColor("_WaterColor").r, newRT, Time.deltaTime);
+        float newG = Mathf.Lerp(material.GetColor("_WaterColor").g, newGT, Time.deltaTime);
+        float newB = Mathf.Lerp(material.GetColor("_WaterColor").b, newBT, Time.deltaTime);
+        float newTrans = Mathf.Lerp(material.GetFloat("_Transparency"), newTransT, Time.deltaTime);
+        Color newColor = new Color(newR, newG, newB, 0); // 设置颜色
+        material.SetColor("_WaterColor", newColor);
+        material.SetFloat("_Transparency", newTrans);
+    }
+```
+#### Delete air wall
+```C#
+public void NoWall()
+    {
+        waterWall.SetActive(false);
+    }
+```
+
+## Week 6 UI & Tutorials & Subtitles
+### UI
+Improve all UI
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/11298e0b-6cbb-4bcf-8e26-172df59be58d)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/9b33d0f6-c810-40d0-8149-c0168a972437)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/40b589ff-2f80-4db3-a914-829abf234764)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/4fe549f5-e32f-4262-a74a-c2e6b0f9a8f4)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/aa1dbb24-7dcb-4b0b-b917-cb3d7a215157)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2de6f8d4-3d3b-45a5-9195-7b5670d6f018)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/0fa2f79e-0e19-408c-865e-589a47f7b2c9)
+
+#### Show and hide UI
+```C#
+public void Show_UI_Movement()
+    {
+        UI_Movement.SetActive(true);
+    }
+    public void Hide_UI_Movement()
+    {
+        UI_Movement.SetActive(false);
+    }
+    public void Show_UI_Point()
+    {
+        alpha = Mathf.Lerp(alpha, 1.0f, Time.deltaTime * 5);
+        Color startColor = UI_Point.GetComponent<Image>().color; 
+        UI_Point.GetComponent<Image>().color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+    }
+    public void Hide_UI_Point()
+    {
+        alpha = Mathf.Lerp(alpha, 0.0f, Time.deltaTime * 5);
+        Color startColor = UI_Point.GetComponent<Image>().color;
+        UI_Point.GetComponent<Image>().color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+    }
+```
+
+### Tutorials
+The tutorial focuses on the core operations of the game, including image scanning.
+
+The protagonist wakes up in unfamiliar surroundings and doesn't remember how he got here, but he finds his sketchbook by his side. Opening the sketchbook, the protagonist discovers that something is missing from it, hinting at the protagonist's missing memories. The sketchbook instructs to scan the paintings through image recognition. At this point, only scanning the Tutorial piece will trigger the subsequent plot, and by clicking on the confirmation through the guide, the window will change from a painting to reality. The protagonist is also shocked and looks around and realises that he is in his childhood room, at which point the protagonist says I think I can move. and hints at the UI that guides the movement.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/9073165a-02e2-44bb-a4c9-02a5de6b9236)
+
+#### Can't move until you finish the tutorial
+```C#
+private void Update()
+    {
+        if (afterTutorial)
+        {
+            StartControl();
+        }
+    }
+```
+#### Tutorial
+```C#
+void Tutorial()
+    {
+        StartCoroutine(TutorialDelay());
+    }
+    public IEnumerator TutorialDelay()
+    {
+        //yield return new WaitForSeconds(4.0f);
+        Camera playerCamera = GameObject.Find("PlayerCamera").GetComponent<Camera>();
+        Transform playerCameraTransform = playerCamera.transform;
+        transform.LookAt(playerCameraTransform);
+        //transform.localEulerAngles -= new Vector3(0, 0, 0);
+        transform.SetParent(playerCameraTransform);
+        transform.position = playerCameraTransform.position + playerCameraTransform.forward * 2.0f;
+        BookHelper.Open();
+        yield return new WaitForSeconds(6.0f);
+        ChangeContent(11, 11); 
+        for (int i = 0; i < 2; i++)
+        {
+            BookHelper.NextPage();
+            yield return new WaitForSeconds(1.0f); // 等待1秒钟
+        }
+        BookHelper.NextPage();
+        StartCoroutine(DelayedChangeContent(10, 10));
+ }
+```
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/4a850633-814f-4474-bf17-f5436642af53)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/d2f4ca37-92e2-4659-b600-8b7554b4bfb8)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/5e8a7dc6-065d-4ab8-8616-93a81067045c)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/b1c5e633-46d3-4131-a816-323172394ea4)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/9a7d46d2-447a-4654-81a3-62310666753f)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/10e277d8-f9ff-4782-8a4c-177f267a79c5)
+
+### Subtitles
+Subtitles for Levels 3 and 4
+How come nothing's changed?
+The door is still blocked.
+This portrait is the scene behind the door.
+Maybe I should get the right perspective.
+If I look at the door through the painting?
+
+The water is a strange colour.
+It doesn't look deep.
+If it wasn't this color, I could get through it.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/fda39690-dd94-43ef-b178-86b4a86e57dd)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/9d43dde8-3fb5-4735-89cd-dd914453d04c)
+
+## Week 7 New Sence
+### Cave
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/c91ba62a-042f-4479-b730-5dff855a828d)
+
+### Gallery
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7ac4c42b-9a6c-4a80-b940-b7a38f442582)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/b51e09f4-8411-47a1-a5aa-d1d5d5707b7d)
+
+### Hospital room
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/40003b04-a364-4ed4-9d0f-cf6a1aca3822)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
