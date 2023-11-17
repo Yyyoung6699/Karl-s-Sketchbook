@@ -53,7 +53,7 @@ Example: There is a door with no doorknob on it, the player uploads a picture of
 
 ### Functional feasibility verification
 Create a new test project in Unity to verify the feasibility of the game's core features.
-Basic functionality: movement, jumping, perspective, ground detection, and camera following regarding character control.
+#### Basic functionality: movement, jumping, perspective, ground detection, and camera following regarding character control.
 ```C#
 public void StartControl()
     {
@@ -80,7 +80,7 @@ public void StartControl()
 ```
 ![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/a9892770-9613-49f3-ad0f-77e6fd2ed2e0)
 
-Core function: the protagonist can take out, put away the mobile phone, open the screen of the phone to select a picture, and generate the object in the picture in a 3D scene after a left mouse click. (Added 2023.9.20 to change the mobile phone into a sketchbook)
+#### Core function: the protagonist can take out, put away the mobile phone, open the screen of the phone to select a picture, and generate the object in the picture in a 3D scene after a left mouse click. (Added 2023.9.20 to change the mobile phone into a sketchbook)
 ```C#
 void TakePhone()
     {
@@ -128,6 +128,103 @@ The initial art style of the scenes was not satisfactory, and the tone of the st
 
 ![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/3f06dfd6-2947-4b72-bae2-6c04aad24bf9)
 ![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/5cdee00f-eb31-45a7-ba8d-bde82df4b621)
+
+Currently, I've created three parts of the scene, including the stone door, the river and the main character's room. The work mainly involves finding suitable model materials and placing them appropriately in the scene. In addition to this, we are also working on materials, lighting, shadow rendering, filters, etc. This process requires constant modifications and adjustments. This process requires constant modification and adjustment, which is quite time-consuming. The following pictures show some scenes.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7f6f38d9-b401-4a1a-8607-d8cd160b67e2)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/f7664fe3-f59d-45f7-bf4f-d4803a1fa044)
+
+It can be seen that the current outdoor scene and indoor scene style is not unified, which will be solved in the subsequent update relying on filters and other technologies.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/82289722-a2ad-48ca-8279-af1c94f8464b)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2ead205e-2100-4003-ae6d-f6ad80bf5c64)
+
+## Week 4 Game Plot Design & Game Mechanics Updates
+### Game Plot Design
+The protagonist, Karl, loses his father at a young age and his mother remarries. But the stepfather and mother were bad to Karl, keeping him confined to his room most of the time.  Unable to play outside, Karl turns to drawing, and his prolonged isolation leads to him becoming increasingly introverted.  At the age of 18, Karl chooses to leave his family and the city to immerse himself in the forest, where he discovers his lifelong love, Catherine.  Their shared interests bring warmth back into Karl's life. The two quickly fall deeply in love, embarking on artistic journeys together.
+
+However, a tragic accident claims Catherine's life, shattering Karl.  Grief-stricken, he reverts to his eccentric ways, and as he enters middle age, his artistic style morphs into the strange and abstract.  Surprisingly, his eccentric works garner significant attention, propelling Karl to fame.  A businessman contacts Karl, hoping to organize an exhibition for him.  Karl agrees, and at the exhibition, many vie to purchase his works, hoping to flaunt their taste.  In conversations between the businessmen, Karl realizes they don't truly understand the creations;  to them, it's merely a tool for showcasing their sophistication.  When they express interest in exploiting the connection between his works and his departed girlfriend for publicity, Karl, incensed, destroys the exhibition.  This act, however, Karl lose everything again.
+
+Lost in a fog of existence, Karl's mental state deteriorates visibly, and his body rapidly ages.  In his twilight years, Karl lies in a hospital bed, his consciousness and memories affected by his mental disorder.  At his bedside rests the sketchbook that accompanied him throughout his life.  In his final moments, Karl, with a foggy consciousness, flips through his sketchbook.  Many of the contents have faded away, much like his memories.  Ultimately, with the player's help, Karl pieces together the artworks, recalling his entire life.  His journey was marked by sorrow, yet it also held moments of happiness, all immortalized by Karl's skilled hand, forever preserved.
+
+### Game Mechanics Updates
+Because of the design of the plot, the mechanics have done some updated iterations.
+The player holds a physical sketchbook. When these artworks appear in front of the camera (image recognition technology), they appear in the sketchbook in the game. These paintings contain clues. The player must guide the protagonist to the location where each piece was originally created. By observing the puzzles, the paintings and the notes under them, and combining the clues in them to choose the right painting to interact with the puzzle, the player is helped to rebuild his memory and break through the levels.
+
+The overall interactive gameplay is not too far from the previous one, but enriches the background and logic, making the whole game more really and sensible.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/2458bcda-bb70-498c-9f76-08ca8d7d3097)
+
+## Week 5 Core Function & First Level Production
+### First Level Production
+The player is in Karl's childhood room, where the locked door is a metaphor for the protagonist's restricted childhood experiences. Design a drawing of a doorknob. When the player selects the drawing and interacts with the door, the drawing disappears and a doorknob is created on the door. Press F to open the door.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/f12a1891-6a42-4f47-85f7-81cdb06b9c08)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/36d44dcf-441d-4dfb-970e-ee2986d24dfc)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/05afcfd6-3a8f-44c9-8209-a47ae3fb536b)
+
+Because of the large amount of code, some key code is shown here
+#### Some interactions of the book
+```C#
+void Preview()
+    {
+        Renderer renderer = BookObject.GetComponent<Renderer>();
+        renderer.material.renderQueue = 3000; // 设置Render Queue值为3000
+
+        if (renderer.material.HasProperty("_Alpha"))
+        {
+            renderer.material.SetFloat("_Alpha", 0.4f); // 设置Alpha属性值为0.5
+        }
+        UseMoveObject();
+    }
+
+void NoPreview()
+    {
+        Renderer renderer = BookObject.GetComponent<Renderer>();
+        renderer.material.renderQueue = 2000; // 设置Render Queue值为3000
+
+        if (renderer.material.HasProperty("_Alpha"))
+        {
+            renderer.material.SetFloat("_Alpha", 1.0f); // 设置Alpha属性值为0.5
+        }
+    }
+```
+#### Changes the image displayed in the book based on the value returned by the Vuforia Engine's image recognition, and also determines the right picture to interact with the level based on this value.
+```C#
+public void ArChange()
+    {
+        if (arImage != previousArImage) // 只有在 ArImage 发生变化时才执行
+        {
+            previousArImage = arImage; // 更新上一帧的 ArImage
+            if (arImage == "ARContent1")
+            {
+                BookHelper.NextPage();
+                StartCoroutine(DelayedChangeContent(1, 2));
+                CurrentTextrue = 1;
+                PaperHaveContent();
+            }
+        }
+    }
+public void ChangeContent(int y, int n)//修改书的画
+    {
+        Renderer renderer = BookObject.GetComponent<Renderer>();
+        Material material = renderer.material;
+
+        if (material.HasProperty("_PaperContent"))
+        {
+            material.SetTexture("_PaperContent", textureArray[y]);
+        }
+        if (material.HasProperty("_PaperNoContent"))
+        {
+            material.SetTexture("_PaperNoContent", textureArray[n]);
+        }
+    }
+```
+
+
+
+
 
 
 
