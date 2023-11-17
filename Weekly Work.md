@@ -563,6 +563,222 @@ If it wasn't this color, I could get through it.
 ### Hospital room
 ![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/40003b04-a364-4ed4-9d0f-cf6a1aca3822)
 
+## Week 8 Level 5-7
+### Level 5 cave(delay)
+
+### Level 6
+Through the cave the player arrives at a vandalised art gallery. it is clear from Karl's voice-over that Karl has forgotten who vandalised this place. the few remaining spotlights in the darkened gallery point to the sixth level's puzzle. a rotating picture frame hangs on the glass wall. it is implied in Ring that She once illuminated me. after interacting with the frame this work of art appears on the picture frame. After interacting the artwork with the frame, the Ring appears on the frame. Interestingly, on the other side of the glass wall, there is also a rotating painting of a man holding up a ring in a very scribbled and simple style. From this side we can see how the two paintings overlap, at which point the player needs to rotate the two paintings to the correct angle to piece together a scene where a man is holding up a ring, and the diamonds in the ring are the stars in Ring. The exhibition hall is lit up.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/c8f524fa-c861-45a5-8e50-1d0f5583ea5f)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/b1cd5abc-6e19-42d6-8770-20a8e76ec4e2)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/d976aaa4-4b97-4165-832d-8da88a5f9710)
+
+#### Rotating paintings and light-ups
+```C#
+void Update()
+    {
+        if (interaction.HitInteractionFrame == true)
+        {
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                targetAngle += rotationAmount;
+                StartCoroutine(RotateObject(targetAngle)); // 启动旋转协程
+            }
+        }
+        if (interaction.StartStar == true)
+        {
+            StarMask.SetActive(false);
+            currentAngle = transform.rotation.eulerAngles.z;
+            if (Mathf.Approximately(currentAngle, 270f) && paintFrame4.rightAngle)
+            {
+                Star.SetActive(true);
+                Light.SetActive(true);
+            }
+            else
+            {
+                Star.SetActive(false);
+                Light.SetActive(false);
+            }
+        }
+    }
+
+    IEnumerator RotateObject(float targetAngle)
+    {
+        float startAngle = transform.rotation.eulerAngles.z;
+        float t = 0;
+
+        while (t < 1)
+        {
+            t += Time.deltaTime * rotationSpeed;
+            float angle = Mathf.LerpAngle(startAngle, targetAngle, t);
+            transform.rotation = Quaternion.Euler(0, -60, angle);
+            yield return null;
+        }
+
+        // 确保最终角度准确
+        transform.rotation = Quaternion.Euler(0, -60, targetAngle);
+    }
+```
+
+### Level 7
+The seventh level is a picture frame without a picture placed on the wall of the pavilion, select the picture Puzzle to interact with the board and the puzzle will appear on the frame. By interacting the Puzzle with the frame and returning the Puzzle's puzzle pieces, we enter a hospital room, which is the end of the game and the end of Karl's life.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/b28685f1-56c7-49d0-9d59-ae390fd8e7a6)
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/0a9e5387-a0ec-4888-bcde-bd09073b31d9)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/b24f3d7c-6f16-413e-a240-4d72d6996bf5)
+
+#### Show Puzzle
+```C#
+if (interaction.StartPinTu == true)
+        {
+            Image1.SetActive(true);
+            Image2.SetActive(true);
+            Image3.SetActive(true);
+            Image4.SetActive(true);
+            Image5.SetActive(true);
+            Image6.SetActive(true);
+        }
+```
+#### Press F to interact
+```C#
+if (interaction.HitInteractionFrame2 == true)
+        {
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                PinTuZhuangTai = PinTuZhuangTai + 1;
+            }
+        }
+
+        if (PinTuZhuangTai == 1) 
+        {
+            StartCoroutine(MoveImages(Image3.transform, new Vector3(0.26f, Image3.transform.localPosition.y, Image3.transform.localPosition.z)));
+            StartCoroutine(MoveImages(Image5.transform, new Vector3(-0.13f, Image5.transform.localPosition.y, Image5.transform.localPosition.z)));
+        }
+        if (PinTuZhuangTai == 2)
+        {
+            StartCoroutine(MoveImages(Image4.transform, new Vector3(-0.26f, Image4.transform.localPosition.y, Image4.transform.localPosition.z)));
+            StartCoroutine(MoveImages(Image6.transform, new Vector3(-0.13f, Image6.transform.localPosition.y, Image6.transform.localPosition.z)));
+        }
+        if (PinTuZhuangTai == 3)
+        {
+            StartCoroutine(RotateLocalYTo90Degrees(Image5.transform));
+            StartCoroutine(RotateLocalYTo90Degrees(Image6.transform));
+            Image7.SetActive(false);
+        }
+```
+#### Jigsaw movement
+```C#
+IEnumerator MoveImages(Transform imageTransform, Vector3 targetLocalPosition)
+    {
+        float elapsedTime = 0;
+
+        Vector3 startingLocalPosition = imageTransform.localPosition;
+
+        while (elapsedTime < transitionDuration)
+        {
+            imageTransform.localPosition = Vector3.Lerp(startingLocalPosition, targetLocalPosition, (elapsedTime / transitionDuration));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        imageTransform.localPosition = targetLocalPosition;
+}
+```
+#### jigsaw puzzle rotating door opener
+```C#
+IEnumerator RotateLocalYTo90Degrees(Transform targetTransform)
+    {
+        Quaternion startRotation = targetTransform.localRotation;
+        Quaternion targetRotation = Quaternion.Euler(targetTransform.localRotation.eulerAngles.x, 170, targetTransform.localRotation.eulerAngles.z);
+        float elapsedTime = 0;
+
+        while (elapsedTime < transitionDuration)
+        {
+            targetTransform.localRotation = Quaternion.Lerp(startRotation, targetRotation, (elapsedTime / transitionDuration));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        targetTransform.localRotation = targetRotation;
+   }
+```
+
+## Week 9 End & Sound
+### End
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/7ef00dd3-3d16-4884-8be5-83eca9d2de86)
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/35240392-2aa3-4052-9dc8-e9741476f437)
+
+#### End animation
+```#
+public IEnumerator GameOver()
+    { 
+        ChangeContent(18, 18);
+        Renderer renderer = BookObject.GetComponent<Renderer>();
+        if (renderer.material.HasProperty("_Columns"))
+        {
+            renderer.material.SetFloat("_Columns", 2.0f); // 设置Alpha属性值为0.5
+        }
+        if (renderer.material.HasProperty("_Rows"))
+        {
+            renderer.material.SetFloat("_Rows", 5.0f); // 设置Alpha属性值为0.5
+        }
+        if (renderer.material.HasProperty("_Progress"))
+        {
+            renderer.material.SetFloat("_Progress", 0.0f); // 设置Alpha属性值为0.5
+        }
+        BookHelper.GameOver();
+
+        TakeBook();
+
+        yield return new WaitForSeconds(2.0f);
+        for (int i = 0; i < 7; i++)
+        {
+            BookHelper.NextPage();
+            yield return new WaitForSeconds(0.5f); // 等待1秒钟
+        }
+        BookHelper.NextPage();
+        yield return new WaitForSeconds(8.0f);
+        BookHelper.Close();
+        StartCoroutine(DelayedBackBook());
+}
+```
+
+### Sound
+Background music, sound effects for walking on land, sound effects for walking in water.
+
+![image](https://github.com/Yyyoung6699/Karl-s-Sketchbook/assets/116611898/99c3057d-6832-42d5-935c-189ace4a3374)
+
+#### Detection of touching the ground or water triggers a sound effect
+```C#
+if (touch.TouchWaterBool == true)
+        {
+            audioPlayer.clip = waterRunning;
+        }
+        if (touch.TouchWaterBool == false)
+        {
+            audioPlayer.clip = running;
+        }
+
+        if (Mathf.Abs(horizontalMove) > 0.1f || Mathf.Abs(verticalMove) > 0.1f)
+        {
+            if (!audioPlayer.isPlaying)
+            {
+                audioPlayer.Play();                
+            }
+        }
+        else
+        {
+            audioPlayer.Stop();
+        }
+```
+
+
+
+
+
 
 
 
